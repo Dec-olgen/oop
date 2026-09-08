@@ -1,0 +1,721 @@
+/* ============================================
+   [SECTION: RESET]
+   ============================================ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ============================================
+   [SECTION: BASE PAGE STYLES]
+   ============================================ */
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f2f6f8;
+    color: #1f2937;
+    padding: 0;
+}
+
+/* ============================================
+   [SECTION: LAYOUT - sidebar + main content side by side]
+   ============================================ */
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* [SUBSECTION: SIDEBAR CONTAINER] */
+.sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: #0f766e;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 22px 0;
+    /* Pin the sidebar to the viewport and let it scroll on its own -
+       otherwise, with a long inventory table, the sidebar stretches to
+       match the whole page's height and Log Out ends up glued to the
+       very bottom of the page instead of staying visibly reachable. */
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.2s ease;
+}
+
+/* [SUBSECTION: COLLAPSED STATE - desktop only, toggled via the < / > button] */
+.sidebar.collapsed {
+    width: 64px;
+}
+
+/* [SUBSECTION: MOBILE MENU TOGGLE - invisible on desktop, only used on mobile] */
+.sidebar-toggle-checkbox { display: none; }
+.sidebar-toggle-btn { display: none; }
+.sidebar-close-btn { display: none; }
+
+/* [SUBSECTION: DESKTOP COLLAPSE TOGGLE - the < / > button next to the logo] */
+.sidebar-collapse-btn {
+    background: rgba(255,255,255,0.12);
+    border: none;
+    color: #fff;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.sidebar-collapse-btn:hover { background: rgba(255,255,255,0.22); }
+
+/* [SUBSECTION: TOPBAR - just wraps the brand on desktop, no visual effect] */
+.sidebar-topbar { display: flex; align-items: center; justify-content: space-between; }
+
+/* [SUBSECTION: COLLAPSIBLE MENU WRAPPER - always open on desktop, matches
+   the old layout exactly (nav fills space, footer sits at the bottom) */
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* [SUBSECTION: SIDEBAR BRAND/LOGO] */
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 20px 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 14px;
+}
+.sidebar-logo { font-size: 22px; }
+.sidebar-title { font-size: 17px; font-weight: 700; }
+
+/* [SUBSECTION: SIDEBAR NAV LINKS] */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #d1fae5;
+    text-decoration: none;
+    padding: 11px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    position: relative;
+}
+.sidebar-nav a:hover { background: rgba(255,255,255,0.08); }
+.sidebar-nav a.active {
+    background: rgba(255,255,255,0.12);
+    border-left: 3px solid #fff;
+    color: #fff;
+    font-weight: 700;
+}
+
+/* [SUBSECTION: SIDEBAR LOGS SECTION - grouped sub-links] */
+.sidebar-section-label {
+    padding: 12px 20px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+}
+.sidebar-nav a.sidebar-sublink {
+    padding-left: 34px;
+    font-size: 13px;
+}
+
+/* [SUBSECTION: SIDEBAR FOOTER - logged-in user + logout] */
+.sidebar-footer {
+    padding: 14px 20px 0;
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    border-top: 1px solid rgba(255,255,255,0.15);
+}
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    position: relative;
+}
+.sidebar-logout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fecaca;
+    text-decoration: none;
+    font-weight: 600;
+    position: relative;
+}
+.sidebar-logout:hover { color: #fff; }
+
+/* ============================================
+   [SECTION: COLLAPSED SIDEBAR - desktop only]
+   ============================================ */
+.sidebar.collapsed .sidebar-label,
+.sidebar.collapsed .sidebar-title,
+.sidebar.collapsed .sidebar-section-label {
+    display: none;
+}
+.sidebar.collapsed .sidebar-nav a {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+.sidebar.collapsed .sidebar-nav a.sidebar-sublink {
+    padding-left: 0;
+}
+.sidebar.collapsed .sidebar-footer {
+    padding-left: 0;
+    padding-right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.sidebar.collapsed .sidebar-user,
+.sidebar.collapsed .sidebar-logout {
+    justify-content: center;
+}
+.sidebar.collapsed .sidebar-brand {
+    padding-left: 0;
+    padding-right: 0;
+    justify-content: center;
+}
+
+/* [SUBSECTION: HOVER TOOLTIP - only appears when collapsed]
+   Uses the data-tooltip attribute already on each link/element. */
+.sidebar.collapsed [data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #111827;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    z-index: 1001;
+    pointer-events: none;
+}
+
+/* ============================================
+   [SECTION: LOGIN / REGISTER PAGES]
+   ============================================ */
+.auth-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f2f6f8;
+    padding: 24px;
+}
+.auth-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 32px 36px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+.auth-brand { border-bottom: none; margin-bottom: 6px; padding: 0; }
+.auth-card h2 { font-size: 19px; margin-bottom: 16px; color: #1f2937; }
+.auth-switch { margin-top: 16px; font-size: 13px; color: #6b7280; }
+.auth-switch a { color: #0f766e; font-weight: 600; text-decoration: none; }
+.auth-switch a:hover { text-decoration: underline; }
+
+/* ============================================
+   [SECTION: MAIN CONTENT CONTAINER]
+   ============================================ */
+.container {
+    flex: 1;
+    margin: 0;
+    background: #fff;
+    padding: 28px 32px 36px;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+/* [SUBSECTION: TABLE SCROLL WRAPPER - lets wide tables scroll sideways
+   on small screens instead of squeezing/breaking the layout] */
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================
+   [SECTION: RESPONSIVE - phone and small tablet screens]
+   ============================================ */
+@media (max-width: 720px) {
+    /* [SUBSECTION: LAYOUT - sidebar becomes a slim top bar with a
+       hamburger button that drops open the full menu below it] */
+    .layout { flex-direction: column; }
+    .sidebar {
+        width: 100%;
+        padding: 0;
+        /* Undo the desktop sticky/full-height rule - on mobile the
+           sidebar should only take up as much height as its topbar
+           actually needs, not the full screen. Without this override,
+           the topbar sits on top of a full-viewport-tall invisible
+           block, pushing all the actual page content out of view. */
+        position: static;
+        height: auto;
+        overflow-y: visible;
+    }
+    /* The desktop collapse feature doesn't apply on mobile - if someone
+       collapsed the sidebar on desktop, the cookie carries over, so
+       force it back to full width and hide labels normally here too. */
+    .sidebar.collapsed { width: 100%; }
+    .sidebar.collapsed .sidebar-label,
+    .sidebar.collapsed .sidebar-title {
+        display: inline;
+    }
+    .sidebar.collapsed .sidebar-section-label {
+        display: block;
+    }
+    .sidebar-collapse-btn { display: none; }
+    .sidebar-topbar {
+        padding: 12px 16px;
+    }
+    .sidebar-brand {
+        padding: 0;
+        margin-bottom: 0;
+        border-bottom: none;
+    }
+    .sidebar-toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        font-size: 20px;
+        color: #fff;
+        background: rgba(255,255,255,0.12);
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    /* [SUBSECTION: THE MENU ITSELF - a full-screen overlay, hidden until
+       the checkbox is checked (i.e. the hamburger button was tapped).
+       Using position:fixed instead of relying on flex+max-height means
+       it's ALWAYS exactly the screen's height and ALWAYS scrolls
+       correctly on its own, no matter how many links are in it - flex
+       items can silently ignore max-height/overflow in some mobile
+       browsers, which was cutting off Log Out before. -->
+    .sidebar-menu {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #0f766e;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        z-index: 1000;
+        padding-bottom: 20px;
+    }
+    .sidebar-toggle-checkbox:checked ~ .sidebar-menu {
+        display: block;
+    }
+    .sidebar-close-btn {
+        display: block;
+        padding: 16px 20px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+        cursor: pointer;
+    }
+    .sidebar-nav {
+        flex-direction: column;
+    }
+    .sidebar-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 14px 20px;
+    }
+
+    /* [SUBSECTION: MAIN CONTAINER - less padding, content fills width] */
+    .container { padding: 18px 14px 24px; }
+    header h1 { font-size: 21px; }
+
+    /* [SUBSECTION: SUMMARY BANNER - chips stack full-width] */
+    .summary-chip { flex: 1 1 auto; min-width: 0; }
+
+    /* [SUBSECTION: TOOLBAR - search/filters stack full-width] */
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .search-form { flex-direction: column; }
+    .search-form input,
+    .search-form select,
+    .search-form button,
+    .search-form .btn-clear {
+        width: 100%;
+    }
+
+    /* [SUBSECTION: FORM PAGES - two-column rows stack to one column] */
+    .form-card { max-width: 100%; }
+    .form-card .row { flex-direction: column; gap: 0; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn { width: 100%; text-align: center; }
+
+    /* [SUBSECTION: TABLE ACTION BUTTONS - stack instead of overflow] */
+    .actions { flex-direction: column; }
+    .qty-form-inline { flex-wrap: wrap; }
+}
+
+/* ============================================
+   [SECTION: PAGE HEADER]
+   ============================================ */
+header { margin-bottom: 20px; }
+header h1 { font-size: 26px; color: #0f766e; }
+.subtitle { color: #6b7280; font-size: 14px; margin-top: 2px; }
+
+/* ============================================
+   [SECTION: ALERT / FLASH MESSAGES]
+   ============================================ */
+.alert {
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+.alert-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+.alert-error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.alert-error ul { padding-left: 18px; }
+
+/* ============================================
+   [SECTION: SUMMARY BANNER - low stock / expiring / expired counts]
+   ============================================ */
+.summary-banner {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+.summary-chip {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    background: #f3f4f6;
+    color: #374151;
+    padding: 10px 16px;
+    border-radius: 10px;
+    min-width: 140px;
+}
+.summary-count {
+    font-size: 22px;
+    font-weight: 800;
+}
+.summary-label {
+    font-size: 13px;
+    font-weight: 600;
+}
+.summary-chip-warn {
+    background: #fef3c7;
+    color: #92400e;
+}
+.summary-chip-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ============================================
+   [SECTION: TOOLBAR - search, filters, add button]
+   ============================================ */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.search-form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ============================================
+   [SECTION: FORM INPUTS - shared across all pages]
+   ============================================ */
+input, select {
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    font-size: 14px;
+}
+
+input:focus, select:focus { outline: 2px solid #14b8a6; border-color: transparent; }
+
+/* ============================================
+   [SECTION: BUTTONS]
+   ============================================ */
+button, .btn {
+    padding: 9px 16px;
+    border: none;
+    border-radius: 7px;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 600;
+    transition: opacity 0.15s;
+}
+button:hover, .btn:hover { opacity: 0.85; }
+
+button, .btn-add { background: #0f766e; color: #fff; }
+.btn-clear { background: #e5e7eb; color: #374151; }
+.btn-edit { background: #2563eb; color: #fff; padding: 6px 12px; font-size: 13px; }
+.btn-delete { background: #dc2626; color: #fff; padding: 6px 12px; font-size: 13px; }
+
+/* ============================================
+   [SECTION: INVENTORY TABLE]
+   ============================================ */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* [SUBSECTION: TABLE HEADER] */
+thead th {
+    text-align: left;
+    background: #0f766e;
+    color: #fff;
+    padding: 10px 12px;
+}
+
+/* [SUBSECTION: TABLE CELLS] */
+tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* [SUBSECTION: ROW STATE HIGHLIGHTS - low stock / expiring / expired] */
+tbody tr:hover { background: #f8fafc; }
+tr.row-low { background: #fff7ed; }
+tr.row-expiring { background: #fffbeb; }
+tr.row-expired { background: #fef2f2; }
+tr.row-expired:hover { background: #fee2e2; }
+
+/* [SUBSECTION: SECTION DIVIDER ROWS - expired group / location groups] */
+tr.section-divider td {
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+tr.section-divider-expired td {
+    background: #991b1b;
+    color: #fff;
+}
+tr.section-divider-normal td {
+    background: #e5e7eb;
+    color: #374151;
+}
+tr.section-divider-location td {
+    background: #ccfbf1;
+    color: #0f766e;
+}
+
+/* [SUBSECTION: CATEGORY BADGE] */
+.badge {
+    background: #e0f2f1;
+    color: #0f766e;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* [SUBSECTION: STATUS TAGS - Low / Expiring soon / Expired] */
+.tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.tag-low { background: #fee2e2; color: #991b1b; }
+.tag-warn { background: #fef3c7; color: #92400e; }
+.tag-expired { background: #991b1b; color: #fff; }
+.tag-increase { background: #dcfce7; color: #166534; }
+.tag-decrease { background: #fee2e2; color: #991b1b; }
+
+/* [SUBSECTION: ACTION BUTTONS + EMPTY STATE] */
+.actions { display: flex; gap: 6px; }
+.empty { text-align: center; color: #9ca3af; padding: 30px 0; }
+
+/* [SUBSECTION: PAGINATION] */
+.pagination {
+    display: flex;
+    gap: 6px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+.page-link {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: #e5e7eb;
+    color: #374151;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+.page-link:hover { background: #d1d5db; }
+.page-link.active { background: #0f766e; color: #fff; }
+
+/* [SUBSECTION: STAFF/ADMIN QUANTITY ADJUST CONTROLS] */
+.qty-adjust { display: flex; align-items: center; }
+.qty-form-inline { display: flex; align-items: center; gap: 4px; }
+.qty-amount-input {
+    width: 48px;
+    padding: 5px 6px;
+    text-align: center;
+}
+.btn-qty {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+}
+.btn-qty-minus { background: #fee2e2; color: #991b1b; }
+.btn-qty-minus:hover { background: #fecaca; }
+.btn-qty-plus { background: #dcfce7; color: #166534; }
+.btn-qty-plus:hover { background: #bbf7d0; }
+.btn-qty:disabled { opacity: 0.4; cursor: not-allowed; }
+
+tr.section-divider-category td {
+    background: #0f766e;
+    color: #fff;
+}
+
+/* ============================================
+   [SECTION: FORM PAGES - Add Item / Edit Item]
+   ============================================ */
+.form-card {
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.form-card label { font-size: 13px; font-weight: 600; margin-top: 10px; color: #374151; }
+.form-card .row { display: flex; gap: 14px; }
+.form-card .row > div { flex: 1; display: flex; flex-direction: column; }
+.form-actions { margin-top: 22px; display: flex; gap: 10px; }
+
+/* [SUBSECTION: DYNAMIC REQUIRED-FIELD INDICATOR - Expiry Date] */
+
+/* ============================================
+   [SECTION: DELETE CONFIRMATION PAGES]
+   ============================================ */
+.confirm-card {
+    max-width: 520px;
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+.confirm-card p { font-size: 14px; margin: 4px 0; color: #374151; }
+
+/* ============================================
+   [SECTION: HOME DASHBOARD]
+   ============================================ */
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.dashboard-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 18px 20px;
+}
+.dashboard-card h2 {
+    font-size: 15px;
+    margin-bottom: 12px;
+    color: #0f766e;
+}
+
+.attention-item,
+.activity-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 13px;
+}
+.attention-item:last-of-type,
+.activity-item:last-of-type {
+    border-bottom: none;
+}
+.activity-time {
+    color: #9ca3af;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.dashboard-card-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f766e;
+    text-decoration: none;
+}
+.dashboard-card-link:hover { text-decoration: underline; }
+
+.category-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.category-chip {
+    background: #e0f2f1;
+    color: #0f766e;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.category-chip:hover { background: #ccfbf1; }
+
+@media (max-width: 720px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+}
+.label-required { color: #dc2626; }
